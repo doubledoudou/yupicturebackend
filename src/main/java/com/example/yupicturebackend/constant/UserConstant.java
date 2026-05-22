@@ -1,0 +1,20 @@
+package com.example.yupicturebackend.constant;
+
+/**
+ * 统一声明用户相关的常量
+ */
+public interface UserConstant {
+    /**
+     * 用户登录态建
+     */
+    String USER_LOGIN_STATE = "user_login";
+    //region权限
+    /**
+     * 默认角色
+     */
+    String DEFAULT_ROLE = "user";
+    /**
+     * 管理员角色
+     */
+    String ADMIN_ROLE = "admin";
+}

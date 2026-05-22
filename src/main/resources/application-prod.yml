@@ -1,0 +1,42 @@
+server:
+  port: ${SERVER_PORT:8123}
+spring:
+  # 数据库配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/yu_picture?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:your-database-password}
+  # Redis 配置
+  redis:
+    database: ${SPRING_REDIS_DATABASE:0}
+    host: ${SPRING_REDIS_HOST:localhost}
+    port: ${SPRING_REDIS_PORT:6379}
+    timeout: ${SPRING_REDIS_TIMEOUT:5000}
+    password: ${SPRING_REDIS_PASSWORD:}
+mybatis-plus:
+  configuration:
+    # 生产环境关闭日志
+    log-impl: ''
+# 接口文档配置
+knife4j:
+  enable: true
+  openapi:
+    title: "接口文档"
+    version: 1.0
+    group:
+      default:
+        api-rule: package
+        api-rule-resources:
+          - com.example.yupicturebackend.controller
+# 对象存储配置
+cos:
+  client:
+    host: ${COS_CLIENT_HOST:https://your-bucket.cos.your-region.myqcloud.com}
+    secretId: ${COS_CLIENT_SECRET_ID:your-secret-id-here}
+    secretKey: ${COS_CLIENT_SECRET_KEY:your-secret-key-here}
+    region: ${COS_CLIENT_REGION:cos.your-region}
+    bucket: ${COS_CLIENT_BUCKET:your-bucket-name}
+# 阿里云 AI 配置
+aliYunAi:
+  apiKey: xxx

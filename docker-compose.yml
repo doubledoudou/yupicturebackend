@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库服务
+  mysql:
+    image: mysql:5.7
+    container_name: yu-picture-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-your-mysql-root-password}
+      MYSQL_DATABASE: yu_picture
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d  # 初始化脚本目录
+    command: 
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+08:00
+    networks:
+      - yu-picture-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Redis 缓存服务
+  redis:
+    image: redis:7-alpine
+    container_name: yu-picture-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - yu-picture-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 5s
+      retries: 5
+
+  # Spring Boot 应用服务
+  app:
+    build: .
+    container_name: yu-picture-app
+    restart: always
+    ports:
+      - "8123:8123"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/yu_picture?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-your-database-password}
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      COS_CLIENT_HOST: ${COS_CLIENT_HOST:-https://your-bucket.cos.your-region.myqcloud.com}
+      COS_CLIENT_SECRET_ID: ${COS_CLIENT_SECRET_ID:-your-secret-id-here}
+      COS_CLIENT_SECRET_KEY: ${COS_CLIENT_SECRET_KEY:-your-secret-key-here}
+      COS_CLIENT_REGION: ${COS_CLIENT_REGION:-cos.your-region}
+      COS_CLIENT_BUCKET: ${COS_CLIENT_BUCKET:-your-bucket-name}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - app_logs:/logs
+    networks:
+      - yu-picture-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8123/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_logs:
+    driver: local
+
+networks:
+  yu-picture-network:
+    driver: bridge
